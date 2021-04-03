@@ -28,8 +28,8 @@ It connects to AWS IoT server then:
 
 //begin connecting to the wifi
 
-const char* ssid = "VIVOFIBRA-H";
-const   char* password = "eAEA8D4E26";
+const char* ssid = "ssid";
+const   char* password = "password";
 
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "pool.ntp.org");
