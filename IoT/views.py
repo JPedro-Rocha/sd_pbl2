@@ -4,6 +4,11 @@ from django.views.generic import DetailView,ListView
 from .models import *
 from django.template import loader
 from django.http import HttpResponse
+from django.views.decorators.csrf import csrf_exempt
+
+from IoT import MQTT
+
+
 
 class CoisaListView(ListView):
     model=Coisa
@@ -64,8 +69,32 @@ def add_temp(request,slug):
         }
         return HttpResponse(template.render(context,request))
 
-def atualizar_temporizador(request,pos):
+def atualizar_temporizador(request,slug,pos):
     print()
     print()
     print(request)
     return CoisaDetailView_add.as_view()
+
+@csrf_exempt
+def altera_lamp(request, slug):
+    coisa = Coisa.objects.get(slug=slug)
+    temporizadores = Temporizadores.objects.filter(coisa=coisa)
+    template = loader.get_template("IoT/coisa_detail.html")
+    if(request.method == "POST"):
+        coisa.estato_lampada = (request.POST.get("lampada") == "true")
+        coisa.save()
+        print("Before")
+        #MQTT
+        if(coisa.estato_lampada == True):
+            MQTT.publish("Light/onoff", "on")
+            print("I'm in")
+        elif(coisa.estato_lampada == False):   
+            MQTT.publish("Light/onoff", "off")
+            print("I'm in")
+        #MQTT
+        print("After")
+    context={
+        "coisa":coisa,
+        "temporizadores":temporizadores
+    }
+    return HttpResponse(template.render(context,request))

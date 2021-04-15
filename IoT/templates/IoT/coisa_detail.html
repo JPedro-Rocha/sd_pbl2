@@ -9,6 +9,33 @@
         <label class="switch my-3">
             <input type="checkbox" id="estado_lampada" {%if coisa.estato_lampada %} checked {% endif %}>
             <span class="slider round"></span>
+            <!--ajax function to get the state of the light-->
+            <script>
+                function ligarDesligar(event) {
+        
+                    let lampada = document.getElementById('estado_lampada').checked
+                    console.log(lampada)
+                
+                    $.ajax({
+                        type: "POST",
+                        url: "/IoT/{{coisa.slug}}/lampada/",
+                        data: {
+                            "lampada": lampada
+                        },
+                        success: function(response) {
+                            console.log(response)
+                        },
+                        error: function(error) {
+                            console.log(error)
+                        }
+                    })
+                }
+                
+                $(document).ready(function() {
+                    $("#estado_lampada").click(ligarDesligar);
+                });
+            </script>
+            <!--ajax function to get the state of the light-->
         </label>    
     </div>
     <!--style="background-color: blue;"-->
@@ -28,7 +55,7 @@
         <h1>Temporizador</h1>
         {% for temporizador in temporizadores %}
         {% if temporizador.coisa == coisa %}
-        <form action="/IoT/atualizar_temporizador/{{temporizador.pos}}/" method="POST">
+        <form action="/IoT/{{coisa.slug}}/atualizar_temporizador/{{temporizador.pos}}/" method="POST">
             <div style="display: flex; margin-left: 40%">
                 <br >
                 <!--onKeyPress="return(fMasc(this,mHora))"-->
