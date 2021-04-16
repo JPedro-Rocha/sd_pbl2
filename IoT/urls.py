@@ -5,8 +5,9 @@ from . import views
 app_name = "IoT"
 
 urlpatterns = [
-    path("", views.CoisaListView.as_view(), name="list"),
-    path("<slug:slug>/", views.CoisaDetailView.as_view(), name="detail"),
+    url(r'^$', views.listar, name="lista"),
+    #path("", views.CoisaListView.as_view(), name="list"),coisa
+    url(r'^(?P<slug>[a-zA-Z0-9]+)/$', views.coisa, name="detail"),
     #path("<slug:slug>/add/", views.CoisaDetailView_add.as_view(template_name="add_temporizador.html"), name="detail/add"),
     url(r'^(?P<slug>[a-zA-Z0-9]+)/add/$', views.add_temp, name="add_temp"),
     url(r'^(?P<slug>[a-zA-Z0-9]+)/remove/(?P<poss>[0-9])/$', views.remov_temp, name="remove_temp"),

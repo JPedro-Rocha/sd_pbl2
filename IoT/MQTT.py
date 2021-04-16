@@ -7,7 +7,10 @@ from time import sleep
 
 client = AWSIoTPyMQTT.AWSIoTMQTTClient("meu_client")
 
-client.confidficate.pem.crt")
+client.configureEndpoint("at9zi9dd4t3sg-ats.iot.us-east-1.amazonaws.com", 8883)
+client.configureCredentials("C:\\Users\\dfc15\\Downloads\\AmazonRootCA1.pem", 
+                                "C:\\Users\\dfc15\\Downloads\\a504e91ba6-private.pem.key",
+                                "C:\\Users\\dfc15\\Downloads\\a504e91ba6-certificate.pem.crt")
 
 client.connect()
 print("Client Connected")
@@ -57,8 +60,14 @@ coisas={}
 def __get_timer__(client, userdata ,mensage ):
     slug = mensage.topic.split("/")[0]
     msg = msg = json.loads(mensage.payload)
-    timer=msg["timer"]
-    estado_timer=msg["timer_on"]
+    try:
+        coisas[slug]["timer"]=msg["timer"]
+        coisas[slug]["estado_timer"]=msg["timer_on"]
+    except:
+        coisas[slug] = {"estado_lampada":0,
+                        "timer":msg["timer"],
+                        "estado_timer":msg["timer_on"]}
+        publish(f'{coisa.slug}/get_tempo',"")
     print( f"O valor do timer na placa é {timer} e ele esta ","ligado" if (estado_timer) else "desligado" )
 
 def __estado__(client, userdata ,mensage ):
@@ -68,7 +77,7 @@ def __estado__(client, userdata ,mensage ):
     try:
         coisas[slug]["estado_lampada"] = coisa.estado_lampada = msg["Estado"]==1
     except:
-        cisas[slug] = {"estado_lampada":msg["Estado"]==1,
+        coisas[slug] = {"estado_lampada":msg["Estado"]==1,
                         "timer":None,
                         "estado_timer":False}
         coisa.estado_lampada = msg["Estado"]==1
@@ -81,3 +90,21 @@ for coisa in  Coisa.objects.all():
     subscribe(f'{coisa.slug}/get_timer',0, __get_timer__)
     subscribe(f'{coisa.slug}/Alterar_Historico',0,__historico__)
     publish(f'{coisa.slug}/get_tempo',"")
+    coisas[coisa.slug] = {"estado_lampada":None,
+                        "timer":None,
+                        "estado_timer":None}
+
+def confirma_coisa(slug):
+    publish(f'{coisa.slug}/get_tempo',"")
+    print()
+    print()
+    print()
+    print(coisas)
+    print()
+    print()
+    print()
+    for a in range(10000000):
+        if(coisas[slug]["estado_lampada"] !=None and  coisas[slug]["timer"] !=None and coisas[slug]["estado_timer"] !=None):
+            return True
+    print("returning false")
+    return False

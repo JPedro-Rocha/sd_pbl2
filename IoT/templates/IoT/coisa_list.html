@@ -4,10 +4,11 @@
 
 {% block body %}
 <div >
-    {% for coisa in coisa_list %}
+    {% for coisa,is_on in coisa_list %}
     <!--background:red;-->
     <coisa style=" display: flex; margin-bottom: 2px; width: 350px; margin-left: auto; margin-right: auto;" >
         <h2> <a href="{{ coisa.get_absolute_url }}"> {{ coisa.slug }} </a> </h2>
+        {% if is_on == True %}
         <label class="switch my-3">
             <input type="checkbox" id="estado_lampada" {%if coisa.estado_lampada %} checked {% endif %}>
             <span class="slider round"></span>
@@ -38,6 +39,11 @@
                 });
             </script>
         </label>
+        {%else%}
+        <h3>
+            Indisponível
+        </h3>
+        {% endif %}
     </coisa>    
     {% endfor %}
 </div>

@@ -15,37 +15,58 @@ from IoT import MQTT
 class CoisaListView(ListView):
     model=Coisa
 
-class CoisaDetailView(DetailView):
-    model=Coisa
-    def get_context_data(self, *args, **kwargs):
-        context = super(CoisaDetailView,
-             self).get_context_data(*args, **kwargs) 
-        context["temporizadores"] = Temporizadores.objects.filter(coisa=context["coisa"])
-        context["historico"] = Historico.objects.filter(coisa=context["coisa"])[::-1][:30]
-        return context
-    
-def remov_temp(request,slug,poss):
-    coisa = Coisa.objects.get(slug=slug)
-    template = loader.get_template("IoT/coisa_detail.html")
-    t = Temporizadores.objects.filter(coisa=coisa).filter(pos=poss)
-    msg = {
-        "tempo":t.horario,
-        "estado":1 if(t.estado) else 0,
-        "posição":poss,
-        "is_add":0,
-        "should_be_trigger":0 }
-    MQTT.publish(f"{slug}/temporizador",msg)
-    t.delete()
-    temporizadores = Temporizadores.objects.filter(coisa=coisa)
-    context={
-        "coisa":coisa,
-        "temporizadores":temporizadores
-    }
-    context["historico"] = Historico.objects.filter(coisa=context["coisa"])[::-1][:30]
+def listar(request):
+    coisas = Coisa.objects.all()
+    template = loader.get_template("IoT/coisa_list.html")
+    vet = {}
+    for c in coisas:
+        vet[c.slug] = MQTT.confirma_coisa(c.slug)
+    context = {"coisa_list":zip(coisas,vet)}
     return HttpResponse(template.render(context,request))
 
+def coisa(request, slug):
+    if(MQTT.confirma_coisa(slug)):
+        coisa = Coisa.objects.get(slug=slug)
+        template = loader.get_template("IoT/coisa_detail.html")
+        temporizadores = Temporizadores.objects.filter(coisa=coisa)
+        context={
+            "coisa":coisa,
+            "temporizadores":temporizadores
+        }
+        context["historico"] = Historico.objects.filter(coisa=context["coisa"])[::-1][:30]
+        return HttpResponse(template.render(context,request))
+    else:
+        template = loader.get_template("IoT/offline.html")
+        context={"slug":slug}
+        return HttpResponse(template.render(context,request))
+    
+def remov_temp(request,slug,poss):
+    if(MQTT.confirma_coisa(slug)):
+        coisa = Coisa.objects.get(slug=slug)
+        template = loader.get_template("IoT/coisa_detail.html")
+        t = Temporizadores.objects.filter(coisa=coisa).filter(pos=poss)
+        msg = {
+            "tempo":t.horario,
+            "estado":1 if(t.estado) else 0,
+            "posição":poss,
+            "is_add":0,
+            "should_be_trigger":0 }
+        MQTT.publish(f"{slug}/temporizador",msg)
+        t.delete()
+        temporizadores = Temporizadores.objects.filter(coisa=coisa)
+        context={
+            "coisa":coisa,
+            "temporizadores":temporizadores
+        }
+        context["historico"] = Historico.objects.filter(coisa=context["coisa"])[::-1][:30]
+        return HttpResponse(template.render(context,request))
+    else:
+        template = loader.get_template("IoT/offline.html")
+        context={"slug":slug}
+        return HttpResponse(template.render(context,request))
+
 def add_temp(request,slug):
-    if(request.method == "GET"):
+    if(MQTT.confirma_coisa(slug)):
         coisa = Coisa.objects.get(slug=slug)
         template = loader.get_template("IoT/coisa_detail.html")
         temporizadores = Temporizadores.objects.filter(coisa=coisa)
@@ -75,64 +96,82 @@ def add_temp(request,slug):
         }
         context["historico"] = Historico.objects.filter(coisa=context["coisa"])[::-1][:30]
         return HttpResponse(template.render(context,request))
+    else:
+        template = loader.get_template("IoT/offline.html")
+        context={"slug":slug}
+        return HttpResponse(template.render(context,request))
 
 def atualizar_temporizador(request,slug,pos):
-    coisa = Coisa.objects.get(slug=slug)
-    temporizadores = Temporizadores.objects.filter(coisa=coisa)
-    template = loader.get_template("IoT/coisa_detail.html")
-    if(request.method == "POST"):
-        temporizadores = temporizadores.filter(pos=pos)
-        for t in temporizadores:
-            pass
-        t.horario = request.POST.get("horario")
-        t.estado = request.POST.get("estado") == "on"
+    if(MQTT.confirma_coisa(slug)):
+        coisa = Coisa.objects.get(slug=slug)
+        temporizadores = Temporizadores.objects.filter(coisa=coisa)
+        template = loader.get_template("IoT/coisa_detail.html")
+        if(request.method == "POST"):
+            temporizadores = temporizadores.filter(pos=pos)
+            for t in temporizadores:
+                pass
+            t.horario = request.POST.get("horario")
+            t.estado = request.POST.get("estado") == "on"
 
-        now = datetime.now()
-        dt_string = now.strftime("%H:%M:%S")
-        msg = { "tempo":t.horario,
-                    "estado": 1 if(t.estado) else 0,
-                    "posição":t.pos,
-                    "is_add": 1,
-                    "should_be_trigger": 1 if (t.horario >= dt_string) else 0 }
-        MQTT.publish(f'{slug}/temporizador',msg)
-        t.save()
-    temporizadores = Temporizadores.objects.filter(coisa=coisa)
-    context={
-        "coisa":coisa,
-        "temporizadores":temporizadores
-    }
-    context["historico"] = Historico.objects.filter(coisa=context["coisa"])[::-1][:30]
-    return HttpResponse(template.render(context,request))
+            now = datetime.now()
+            dt_string = now.strftime("%H:%M:%S")
+            msg = { "tempo":t.horario,
+                        "estado": 1 if(t.estado) else 0,
+                        "posição":t.pos,
+                        "is_add": 1,
+                        "should_be_trigger": 1 if (t.horario >= dt_string) else 0 }
+            MQTT.publish(f'{slug}/temporizador',msg)
+            t.save()
+        temporizadores = Temporizadores.objects.filter(coisa=coisa)
+        context={
+            "coisa":coisa,
+            "temporizadores":temporizadores
+        }
+        context["historico"] = Historico.objects.filter(coisa=context["coisa"])[::-1][:30]
+        return HttpResponse(template.render(context,request))
+    else:
+        template = loader.get_template("IoT/offline.html")
+        context={"slug":slug}
+        return HttpResponse(template.render(context,request))
 
 def set_timer(request,slug):#-----------------------------------------------------------------------------------------------------------
-    coisa = Coisa.objects.get(slug=slug)
-    temporizadores = Temporizadores.objects.filter(coisa=coisa)
-    template = loader.get_template("IoT/coisa_detail.html")
-    if(request.method == "POST"):
-        tempo = request.POST.get("tempo")
-        is_on = request.POST.get("is_on") == "on"
-    context={
-        "coisa":coisa,
-        "temporizadores":temporizadores
-    }
-    context["historico"] = Historico.objects.filter(coisa=context["coisa"])[::-1][:30]
-    return HttpResponse(template.render(context,request))
+    if(MQTT.confirma_coisa(slug)):
+        coisa = Coisa.objects.get(slug=slug)
+        temporizadores = Temporizadores.objects.filter(coisa=coisa)
+        template = loader.get_template("IoT/coisa_detail.html")
+        if(request.method == "POST"):
+            tempo = request.POST.get("tempo")
+            is_on = request.POST.get("is_on") == "on"
+        context={
+            "coisa":coisa,
+            "temporizadores":temporizadores
+        }
+        context["historico"] = Historico.objects.filter(coisa=context["coisa"])[::-1][:30]
+        return HttpResponse(template.render(context,request))
+    else:
+        template = loader.get_template("IoT/offline.html")
+        context={"slug":slug}
+        return HttpResponse(template.render(context,request))
+
 
 @csrf_exempt
 def altera_lamp(request, slug):
-    coisa = Coisa.objects.get(slug=slug)
-    temporizadores = Temporizadores.objects.filter(coisa=coisa)
-    template = loader.get_template("IoT/coisa_detail.html")
-    if(request.method == "POST"):
-        coisa.estado_lampada = (request.POST.get("lampada") == "true")
-        coisa.save()
-        if(coisa.estado_lampada == True):
-            MQTT.publish("Light/onoff", "on")
-        elif(coisa.estado_lampada == False):   
-            MQTT.publish("Light/onoff", "off")
-    context={
-        "coisa":coisa,
-        "temporizadores":temporizadores
-    }
-    context["historico"] = Historico.objects.filter(coisa=context["coisa"])[::-1][:30]
-    return HttpResponse(template.render(context,request))
+    if(MQTT.confirma_coisa(slug)):
+        coisa = Coisa.objects.get(slug=slug)
+        temporizadores = Temporizadores.objects.filter(coisa=coisa)
+        template = loader.get_template("IoT/coisa_detail.html")
+        if(request.method == "POST"):
+            coisa.estado_lampada = (request.POST.get("lampada") == "true")
+            coisa.save()
+            msg = {"novo_estado": 1 if(coisa.estado_lampada) else 0 }
+            MQTT.publish("Light/onoff", "msg")
+        context={
+            "coisa":coisa,
+            "temporizadores":temporizadores
+        }
+        context["historico"] = Historico.objects.filter(coisa=context["coisa"])[::-1][:30]
+        return HttpResponse(template.render(context,request))
+    else:
+        template = loader.get_template("IoT/offline.html")
+        context={"slug":slug}
+        return HttpResponse(template.render(context,request))
