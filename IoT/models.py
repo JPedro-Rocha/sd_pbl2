@@ -9,31 +9,34 @@ from django.urls import reverse
 # Create your models here.
 class Coisa(models.Model):
     slug = models.CharField(max_length=100)
-    estato_lampada = models.BooleanField( default = False )
-    ligou_iot_at = models.DateTimeField(auto_now=True)# A date and time, represented in Python by a datetime.datetime instance.
+    estado_lampada = models.BooleanField( default = False )
+    potencia = models.FloatField()
     def __str__(self):
         return self.slug
     def get_absolute_url(self):
         return reverse("IoT:detail",kwargs={"slug":self.slug})
+    def get_potencia(self):
+        return self.potencia
 
 class Temporizadores( models.Model ):
-    horario = models.IntegerField(  ) # Values from -2147483648 to 2147483647
-    estato = models.BooleanField( default = True )
+    horario = models.CharField(max_length=8) # Values from -2147483648 to 2147483647
+    estado = models.BooleanField( default = False )
     coisa = models.ForeignKey(Coisa, on_delete=models.CASCADE)
     pos= models.PositiveSmallIntegerField()
     def __str__(self):
-        c = self.horario/60000
-        return f'{int(c/60)}:{int(c%60)}'
-
+        return str(self.horario)
     def get_horario(self):
-        c = self.horario/60000
-        return   f'{int(c/60):02}:{int(c%60):02}'
+        return self.horario
         
 
 class Historico( models.Model ):
-    dia_mes = models.CharField( max_length=6 )
+    date = models.CharField( max_length=11 )
     tempo_ligado = models.PositiveBigIntegerField() #max value 9223372036854775807
     preço = models.FloatField()
     coisa = models.ForeignKey(Coisa, on_delete=models.CASCADE)
+    def get_KWh(self):
+        return round(((self.tempo_ligado/1000)/3600) * self.coisa.get_potencia(),3 )
     def __str__(self):
-        return self.mes_ano
+        return self.date
+    def total(self):
+        return round(self.get_KWh() * self.preço,3)
