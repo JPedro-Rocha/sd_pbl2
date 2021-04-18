@@ -1,256 +1,299 @@
-/*Developed by M V Subrahmanyam - https://www.linkedin.com/in/veera-subrahmanyam-mediboina-b63997145/
-Project: AWS | NodeMCU ESP32 Tutorials
-Electronics Innovation - www.electronicsinnovation.com
-
-GitHub - https://github.com/VeeruSubbuAmi
-YouTube - http://bit.ly/Electronics_Innovation
-
-Upload date: 07 October 2019
-
-AWS Iot Core
-
-This example needs https://github.com/esp8266/arduino-esp8266fs-plugin
-
-It connects to AWS IoT server then:
-- publishes "hello world" to the topic "outTopic" every two seconds
-- subscribes to the topic "inTopic", printing out any messages
-*/
-
-
-
 #include "FS.h"
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 #include <NTPClient.h>
 #include <WiFiUdp.h>
+#include <ArduinoJson.h>
 
-// Update these with values suitable for your network.
+struct temporizador {
+  String tempo;
+  bool estado;
+  bool is_on = false;
+  bool will_be_trigger;
+};
+/*
+  SETUP PLACA
+*/
 
-//begin connecting to the wifi
+//setando as informaçoes da rede
+const char* id_rede = "FIBRA-1032";
+const char* senha_rede = "0Z38019489";
 
-const char* ssid = "ssid";
-const   char* password = "password";
-
-WiFiUDP ntpUDP;
-NTPClient timeClient(ntpUDP, "pool.ntp.org");
-
-const char* AWS_endpoint = "at9zi9dd4t3sg-ats.iot.us-east-1.amazonaws.com"; //MQTT broker ip
-
-//en connecting to the wifi
-
-//begin callback(receiving messages)
-
-void callback(char* topic, byte* payload, unsigned int length) {
-  if(strcmp(topic, "inTopic") == 0){
-    //digitalWrite(2, HIGH);
-    //delay(1500);
-    Serial.print("Message arrived [");
-    Serial.print(topic);
-    Serial.print("] ");
-    for (int i = 0; i < length; i++) {
-      Serial.print((char)payload[i]);
-    }
-    Serial.println();
-  }
-  else if(strcmp(topic, "Light/onoff") == 0){
-    //Serial.print("Message arrived [");
-    //Serial.print(topic);
-    //Serial.print("] ");
-    //for (int i = 0; i < length; i++) {
-      //Serial.print((char)payload[i]);
-    //}
-    //Serial.println();
-    
-    String r_payload = "";
-    for (int i=0;i<length;i++) {
-      r_payload += (char)payload[i];
-    }
-    //add
-    for (int i = 0; i < length; i++) {
-      Serial.print(r_payload[i]);
-    }
-    Serial.println();
-    //add
-    if(r_payload == "on"){
-      digitalWrite(2, LOW);
-      Serial.print("Hi");
-    }
-    else if(r_payload == "off"){
-      digitalWrite(2, HIGH);
-      Serial.print("Hi");
-    }
-  }
-}
-
-//end callback
-
-//begin publishing variables
+WiFiUDP udp;
+NTPClient tempo_obj(udp, "b.ntp.br", -3 * 3600, 60000);
+//endpoint AWS
+const char* AWS_endpoint = "a1hhzdnhqam0eu-ats.iot.us-east-1.amazonaws.com";
+//setando a função que vai ser chamada quando uma mensagem chegar
+void callback(char* topic, byte* payload, unsigned int length);
 
 WiFiClientSecure espClient;
-PubSubClient client(AWS_endpoint, 8883, callback, espClient); //set MQTT port number to 8883 as per //standard
-long lastMsg = 0;
-char msg[50];
-int value = 0;
-//end publishing variables
+PubSubClient MQTT(AWS_endpoint, 8883, callback, espClient);
 
+/*
+  SETUP VARIAVEIS GLOBAIS
+*/
 
-//begin setup wifi
+// Variaveis pra o codigo
+String timer;
+bool timer_on = false;
 
-void setup_wifi() {
+int estado_lampada=1;
+unsigned long ligado_at;
 
-  delay(10);
+const int DEFOUT_JSON_BIT_SIZE = 256;
+
+const int len_temporizadores = 10;
+temporizador temporizadores[len_temporizadores];
+
+//Nome dispostivo
+const String nome_dispositivo = "lampada1";
+
+/*
+  FUNÇOES
+*/
+
+/*
+  Esta função altera o estado da lampada
+  @param novo_estado é uma bool que sera o novo estado da lampada, true para ligado e false para desligado
+    para o caso de ligado o estado é alterado estado da variavel que  guarda o valor do estado da lampada, guarda o tempo no qual a lampada foi ligada e liga a lampada ( envia HIGH pro pino 2 )
+    para o caso de desligadao ele calcula o tempo que a lampada fico ligado e manda um publish no topico Soma_historico_Wh com o valor em milisegundos que a lampada fico on no codigo "tempo", muda a variavel de estado da lampada, zera a variavel que guarda o instante q a lampada estava on e apaga a lampada ( envia LOW no pino 2 )
+*/
+void mudar_estado_lampada( int novo_estado ) {
+  Serial.print("entrando na função de muda estado mudando para: ");
+  if (novo_estado == 1 && estado_lampada == 0) {
+    Serial.println("Ligando");
+    digitalWrite(LED_BUILTIN, LOW); // Manda LOW aqui pq a logica do led é invertida
+    ligado_at = tempo_obj.getEpochTime();
+    estado_lampada = novo_estado;
+  } else if (novo_estado == 0 && estado_lampada == 1) {
+    Serial.println("Apagando");
+    digitalWrite(LED_BUILTIN, HIGH); // manda HIGH aqui pq a logica do led é invertida
+    unsigned long now = tempo_obj.getEpochTime();
+    ligado_at = now - ligado_at;
+    char msg[75];
+    snprintf (msg, 75, "{\"tempo\": %uld}", ligado_at);
+    MQTT.publish("Lampada1/Alterar_Historico", msg);
+    ligado_at = 0;
+    estado_lampada = novo_estado;
+  } else {
+    Serial.print ("nenhuma ação foi tomada variaveis de estatus-> estado atual: ");
+    Serial.print (estado_lampada);
+    Serial.print (" estado novo: ");
+    Serial.println (novo_estado);
+  }
+}
+/*
+  Esta função publica o estado da lampada como inteiro, 0 pra falso ( apagada ) e nao 0 pra true ( acessa ), no codigo "Estado"
+*/
+void publish_lampada() {
+  Serial.println( "enviando estado da lampada" );
+  char msg[60];
+  snprintf (msg, 60, "{\"Estado\": %d}", estado_lampada);
+  MQTT.publish("Lampada1/Estado", msg);
+}
+
+/*
+  Esta função seta o valor do timer, e seta a flag que indica se o timer esta ligado ou desligado
+  @param tempo, tipo String, sendo o horario que que o evento sera trigado, ex: caso timer seja de 30 min e o horario atual 15:32:23 o valor de tempo dever ser 16:02:23
+  @param is_ligado bool indicando se o timer deve ser ligado ou desligado
+*/
+void set_timer(String tempo, bool is_ligado) {
+  Serial.print("Criando timer para inverter o estado da lampada em (s):");
+  Serial.println(tempo);
+  timer = tempo;
+  timer_on = is_ligado == 1 ? true : false;
+}
+
+/*
+  Esta função publica o timer no broker MQTT
+*/
+void get_timer() {
+  Serial.println("Publicando timer");
+  char msg[160];
+  char buff[25];
+  timer.toCharArray(buff,25);
+  if(timer_on){
+    snprintf (msg, 160, "{\"timer\": %s, \"timer_on\":True}", buff);
+  }else{
+    snprintf (msg, 160, "{\"timer\": %s, \"timer_on\":False}", buff);
+    }
+  MQTT.publish("Lampada1/get_timer", msg);
+}
+
+/*
+  Esta função atualiza os dados de um determinado temporizador do vetor.
+  @param tempom tipo String, sendo o horario que o temporizador deve ser acionado, ex: 19:34:59
+  @param estado um bool indicando se a lampada vai acender ou apagar
+  @param pos int que indica a posição do temporizador no vetor de temporizadores
+  @param is_add bool dizendo se o temporizador foi adicionado (true) ou removido (false)
+  @param should_be_trigger bool indicando se o temporizador deve ser trigado ainda nesse ciclo de 24h de funcionamento da placa
+*/
+void set_temporizador(String tempo, bool estado, int pos, bool is_add, bool should_be_trigger) {
+  temporizadores[pos].tempo = tempo;
+  temporizadores[pos].estado = estado;
+  temporizadores[pos].is_on = is_add == 1 ? true : false;
+  temporizadores[pos].will_be_trigger = should_be_trigger;
+}
+
+/*
+  Função que recebe a mensagem do MQTT e chama os devidos procedimentos para serem executados
+*/
+void callback(char* topic, byte* payload, unsigned int length) {
+  Serial.print("Message arrived [");
+  Serial.print(topic);
+  Serial.println("] ");
+  DynamicJsonDocument doc(DEFOUT_JSON_BIT_SIZE);
+  deserializeJson(doc, payload);
+  serializeJson(doc, Serial);
+  Serial.println();
+  if ( strcmp(topic,"Lampada1/OnOff") == 0 ) {
+    mudar_estado_lampada(doc["novo_estado"]);
+  } else if ( strcmp(topic, "Lampada1/get_tempo") == 0 ) {
+    publish_lampada();
+    get_timer();
+  } else if ( strcmp(topic, "Lampada1/set_timer") == 0 ) {
+    set_timer(doc["set_timer"], doc["is_ligado"]);
+  } else if ( strcmp(topic, "Lampada1/temporizador") == 0 ) {
+    set_temporizador(doc["tempo"], doc["estado"], doc["posição"], doc["is_add"], doc["should_be_trigger"]);
+  };
+  topic = "";
+}
+
+void conectar_wifi() {
   // We start by connecting to a WiFi network
   espClient.setBufferSizes(512, 512);
   Serial.println();
-  Serial.print("Connecting to ");
-  Serial.println(ssid);
+  Serial.print("Tentando conectar com: ");
+  Serial.println(id_rede);
 
-  WiFi.begin(ssid, password);
+  WiFi.begin(id_rede, senha_rede);
 
   while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
+    delay(200);
     Serial.print(".");
   }
-
   Serial.println("");
-  Serial.println("WiFi connected");
-  Serial.println("IP address: ");
-  Serial.println(WiFi.localIP());
-
-  timeClient.begin();
-  while (!timeClient.update()) {
-    timeClient.forceUpdate();
+  Serial.println("WiFi conectado");
+  tempo_obj.begin();
+  while (!tempo_obj.update()) {
+    tempo_obj.forceUpdate();
   }
-
-  espClient.setX509Time(timeClient.getEpochTime());
+  espClient.setX509Time(tempo_obj.getEpochTime());
 
 }
-
-//end setup wifi
-
-
-//begin reconnect to try and connect with MQTT
-
-void reconnect() {
-  // Loop until we're reconnected
-  while (!client.connected()) {
-    Serial.print("Attempting MQTT connection...");
-    // Attempt to connect
-    if (client.connect("ESPthing")) {
-      Serial.println("connected");
-      // Once connected, publish an announcement...
-      client.publish("outTopic", "hello world");
-      // ... and resubscribe
-      client.subscribe("inTopic");
-      client.subscribe("Light/#");
+//função para Conectar com o MQTT
+void conectar_mqtt() {
+  while (!MQTT.connected()) {
+    Serial.print("Tentando conectar com o MQTT: ");
+    // parque que faz o request pra conectar
+    if (MQTT.connect("ESPthing")) {
+      Serial.println("Conectado");
+      //se inscrevendo nos topicos que serao constantemente ouvidos pela placa
+      MQTT.subscribe("Lampada1/OnOff");
+      MQTT.subscribe("Lampada1/get_tempo");
+      MQTT.subscribe("Lampada1/set_timer");
+      MQTT.subscribe("Lampada1/temporizador");
     } else {
-      Serial.print("failed, rc=");
-      Serial.print(client.state());
-      Serial.println(" try again in 5 seconds");
-
-      char buf[256];
-      espClient.getLastSSLError(buf, 256);
-      Serial.print("WiFiClientSecure SSL error: ");
-      Serial.println(buf);
-
-      // Wait 5 seconds before retrying
-      delay(5000);
+      Serial.print("Nao conectado, rc=");
+      Serial.print(MQTT.state());
+      Serial.println(" Nova tentativa em 1 segundo");
+      delay(1000);
     }
   }
 }
 
-//end reconnect
-
-//begin setup
-
-void setup() {
-
-  Serial.begin(115200);
+void setup() { // PRECISA ADICIONA MENSAGEM DE CONFIGURAÇÃO AO LIGAR --------------------------------------------------------------------------
+  Serial.begin(9600); // inicia "console"
   Serial.setDebugOutput(true);
-  // initialize digital pin LED_BUILTIN as an output.
+  // Pino do led como saida.
   pinMode(LED_BUILTIN, OUTPUT);
-  setup_wifi();
+  pinMode(0, INPUT_PULLUP);
+  //tenta conectar com wifi
+  conectar_wifi();
   delay(1000);
   if (!SPIFFS.begin()) {
-    Serial.println("Failed to mount file system");
+    Serial.println("Falha na inicialização");
     return;
   }
+  for ( int a = 0; a < len_temporizadores; a++ )
+    temporizadores[a].is_on = false;
 
-  Serial.print("Heap: "); Serial.println(ESP.getFreeHeap());
+  // Carregando certificados do AWS
+  File cert = SPIFFS.open("/crt.der", "r");
+  cert ? Serial.println("Certificado aberto com sucesso") : Serial.println("Falha ao abrir o certificado");
+  espClient.loadCertificate(cert) ? Serial.println("Certificado caregado") : Serial.println("Falha ao caregar o certificado");
 
-  // Load certificate file
-  File cert = SPIFFS.open("/cert.der", "r"); //replace cert.crt eith your uploaded file name
-  if (!cert) {
-    Serial.println("Failed to open cert file");
-  }
-  else
-    Serial.println("Success to open cert file");
+  File private_key = SPIFFS.open("/private.der", "r");
+  private_key ? Serial.println("Chave privada aberta com sucesso") : Serial.println("Falha em abrir a chave privada");
+  espClient.loadPrivateKey(private_key) ? Serial.println("Chave privada carregada com sucesso") : Serial.println("Chave privada não carregada");
 
-  delay(1000);
+  File ca = SPIFFS.open("/ca.der", "r");
+  ca ? Serial.println("AWS CA aberto com sucesso") : Serial.println("AWS CA não foi abertoaberto");
+  espClient.loadCACert(ca) ? Serial.println("AWS CA caregado") : Serial.println("AWS CA não carregado");
 
-  if (espClient.loadCertificate(cert))
-    Serial.println("cert loaded");
-  else
-    Serial.println("cert not loaded");
-
-  // Load private key file
-  File private_key = SPIFFS.open("/private.der", "r"); //replace private eith your uploaded file name
-  if (!private_key) {
-    Serial.println("Failed to open private cert file");
-  }
-  else
-    Serial.println("Success to open private cert file");
-
-  delay(1000);
-
-  if (espClient.loadPrivateKey(private_key))
-    Serial.println("private key loaded");
-  else
-    Serial.println("private key not loaded");
-
-  // Load CA file
-  File ca = SPIFFS.open("/ca.der", "r"); //replace ca eith your uploaded file name
-  if (!ca) {
-    Serial.println("Failed to open ca ");
-  }
-  else
-    Serial.println("Success to open ca");
-
-  delay(1000);
-
-  if (espClient.loadCACert(ca))
-    Serial.println("ca loaded");
-  else
-    Serial.println("ca failed");
-
-  Serial.print("Heap: "); Serial.println(ESP.getFreeHeap());
+  conectar_mqtt();
+//  Serial.println(tempo_obj.getFormattedTime());
+  MQTT.publish("Lampada1/Iniciar","");
 }
 
-//end setup
+bool was_button_pushed = false, was_already_sent = false;
 
-//begin loop where the messge qeues are handled
 
 void loop() {
-
-  if (!client.connected()) {
-    reconnect();
+  // se nao estiver conectado a amazon conecte
+  if (!MQTT.connected()) {
+    conectar_mqtt();
   }
-  client.loop();
-
-  long now = millis();
-  if (now - lastMsg > 2000) {
-    lastMsg = now;
-    ++value;
-    snprintf (msg, 75, "{\"message\": \"hello world #%ld\"}", value);
-    Serial.print("Publish message: ");
-    Serial.println(msg);
-    client.publish("outTopic", msg);
-    Serial.print("Heap: "); Serial.println(ESP.getFreeHeap()); //Low heap can cause problems
+  MQTT.loop();
+  //coletamos qual o millis de agora
+  String now = tempo_obj.getFormattedTime();
+  if (timer_on && now >= timer) { // se passamos do horario do timer  e ele nao foi ativado ainda ativamos ele
+    mudar_estado_lampada( (estado_lampada == 0) ? 1 : 0 );
+    timer_on = false;
   }
-  //digitalWrite(2, HIGH); // turn the LED on (HIGH is the voltage level)
-  //delay(1500); // wait for a second
-  //digitalWrite(2, LOW); // turn the LED off by making the voltage LOW
-  //delay(1500); // wait for a second
+  if (now == "00:00:00" ) { // a cada 24h re-armamos os temporizadores
+    for ( int a = 0; a < len_temporizadores; a++ )
+      temporizadores[a].will_be_trigger = true;
+    // Como deve ter o historico diario a cada final de dia se a lampada estiver acessa enviamos o tempo que ela ficou acessa e zeramos a variavel que guarda esse tempo na memoria
+    char msg[75];
+    snprintf (msg, 75, "{\"tempo\": %ld}", tempo_obj.getEpochTime() - ligado_at );
+    ligado_at = tempo_obj.getEpochTime();
+    MQTT.publish("Lampada1/Alterar_Historico", msg);
+    Serial.println( "Houve virada de dia" );
+  }// para cada temporizador o tempo de agora for maior que o de acionalo E não tivermos acionado ainda E ele deve ser usado o trigamos
+  for (int a = 0; a < len_temporizadores; a++) {
+    if ( temporizadores[a].will_be_trigger && now >= temporizadores[a].tempo && temporizadores[a].is_on) {
+      mudar_estado_lampada( temporizadores[a].estado );
+      temporizadores[a].will_be_trigger = false;
+    }
+  }// pin 0 é o botao
+  if ( was_button_pushed && !was_already_sent) {
+    if(WiFi.status() == WL_CONNECTED){
+      char msg[75];
+      snprintf (msg, 75, "{\"novo_estado\": %i}", estado_lampada == 1 ? 0 : 1);
+      MQTT.publish("Lampada1/OnOff" , msg);
+      }else{
+        mudar_estado_lampada(estado_lampada == 1 ? 0 : 1);
+        }
+    was_already_sent = true;
+  }
+  was_already_sent = was_button_pushed;
+  was_button_pushed = digitalRead(0) == 0 ? true : false;
 }
 
-//end loop
+/*
+  LIXO
+  
+ * Frunção que retorna o topico correto para um dado topico, adicionando o nome da coisa na frente. Ex topico = "oi" e nome da coisa = "lamp" retorna lamp/oi
+ * @param topico, char* que sera colocado depois de: {nome_da_coisa}/
+ * @return char* sendo o topico escrito corretamente, {nome_da_coisa}/{topico}
+char* get_topic(String topico){
+  String topic = nome_dispositivo+"/";
+  topic.concat(topico);
+  char buff[75];
+  topic.toCharArray(buff,75);
+  return buff;
+  }
+
+
+*/

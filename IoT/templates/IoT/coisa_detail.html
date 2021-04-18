@@ -43,13 +43,13 @@
         <h1>Ligar/Desligar daqui a:</h1>
         <br>    
         <form action="/IoT/{{coisa.slug}}/timer/" method="POST">{% csrf_token %}
-            <input name="tempo" class="my-2 mr-3 p-1 horario" type="text" value="{% if timer %}{{ timer }} {% else %} 00:00:00 {% endif %}"  onfocusin="" onKeyPress="return(fMasc(this,mHora))" maxlength="8" style="width: 85px;">
+            <input name="tempo" class="my-2 mr-3 p-1 horario" type="text" value="00:00:00" placeholder="{% if timer %}{{ timer }}{% endif %}" onfocusin="" onKeyPress="return(fMasc(this,mHora))" maxlength="8" style="width: 85px;">
             <label class="switch my-3 mr-3">
-                <input name="is_on"  type="checkbox" id="estado_timer" {% if is_on %} checked {% endif %}>
+                <input name="timer_on"  type="checkbox" id="estado_timer" {% if estado_timer == True %} checked {%else%} style="display:None;" {% endif %}>
                 <span class="slider round"></span>
             </label>
             <a>
-                <button class="btn mr-3">Iniciar</button>
+                <button class="btn mr-3">{% if estado_timer %}Alterar{% else %}Iniciar{% endif %}</button>
             </a>
         </form>
     </div>
