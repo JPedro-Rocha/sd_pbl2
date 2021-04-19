@@ -6,7 +6,7 @@ from .models import Historico
 
 @admin.register(Coisa)
 class CoisaAdmin(admin.ModelAdmin):
-    list_display = ( "slug","estado_lampada","potencia")
+    list_display = ( "slug","estado_lampada","potencia","preço")
 
 @admin.register(Temporizadores)
 class TemporizadoresAdmin(admin.ModelAdmin):
@@ -14,4 +14,4 @@ class TemporizadoresAdmin(admin.ModelAdmin):
 
 @admin.register(Historico)
 class HistoricoAdmin(admin.ModelAdmin):
-    list_display = ( "coisa","date","tempo_ligado","preço")
+    list_display = ( "coisa","date","tempo_ligado")

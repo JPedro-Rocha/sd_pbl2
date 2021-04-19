@@ -7,6 +7,7 @@ from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from datetime import datetime,timedelta
 from IoT import MQTT
+from django.shortcuts import redirect
 
 class CoisaListView(ListView):
     model=Coisa
@@ -33,7 +34,6 @@ def coisa(request, slug):
 def remov_temp(request,slug,poss):
     if(MQTT.confirma_coisa(slug)):
         coisa = Coisa.objects.get(slug=slug)
-        template = loader.get_template("IoT/coisa_detail.html")
         t = Temporizadores.objects.filter(coisa=coisa).filter(pos=poss)
         t = t[0]
         msg = {
@@ -44,8 +44,7 @@ def remov_temp(request,slug,poss):
             "should_be_trigger":0 }
         MQTT.publish(f"{slug}/temporizador",msg)
         t.delete()
-        context = __get_base_context(slug)
-        return HttpResponse(template.render(context,request))
+        return redirect('IoT:detail', slug = slug)
     else:
         template = loader.get_template("IoT/offline.html")
         context={"slug":slug}
@@ -54,7 +53,6 @@ def remov_temp(request,slug,poss):
 def add_temp(request,slug):
     if(MQTT.confirma_coisa(slug)):
         coisa = Coisa.objects.get(slug=slug)
-        template = loader.get_template("IoT/coisa_detail.html")
         temporizadores = Temporizadores.objects.filter(coisa=coisa)
         a = [False for t in range(10)]
         for t in temporizadores:
@@ -75,8 +73,7 @@ def add_temp(request,slug):
                 t.save()
         except:
             pass
-        context = __get_base_context(slug)
-        return HttpResponse(template.render(context,request))
+        return redirect('IoT:detail', slug = slug)
     else:
         template = loader.get_template("IoT/offline.html")
         context={"slug":slug}
@@ -103,8 +100,7 @@ def atualizar_temporizador(request,slug,pos):
                         "should_be_trigger": 1 if (t.horario >= dt_string) else 0 }
             MQTT.publish(f'{slug}/temporizador',msg)
             t.save()
-        context = __get_base_context(slug)
-        return HttpResponse(template.render(context,request))
+        return redirect('IoT:detail', slug = slug)
     else:
         template = loader.get_template("IoT/offline.html")
         context={"slug":slug}
@@ -132,8 +128,7 @@ def set_timer(request,slug):
             MQTT.publish(f"{slug}/set_timer", msg)
             MQTT.coisas[slug]["estado_timer"] = (["is_ligado"]==1)
             MQTT.coisas[slug]["timer"] = msg["set_timer"] if(MQTT.coisas[slug]["estado_timer"]) else "00:00:00"
-        context = __get_base_context(slug)
-        return HttpResponse(template.render(context,request))
+        return redirect('IoT:detail', slug = slug)
     else:
         template = loader.get_template("IoT/offline.html")
         context={"slug":slug}
@@ -143,31 +138,40 @@ def set_timer(request,slug):
 @csrf_exempt
 def altera_lamp(request, slug):
     if(MQTT.confirma_coisa(slug)):
-        coisa = Coisa.objects.get(slug=slug)
         template = loader.get_template("IoT/coisa_detail.html")
+        coisa = Coisa.objects.get(slug=slug)
         if(request.method == "POST"):
             coisa.estado_lampada = (request.POST.get("lampada") == "true")
+            MQTT.coisas[slug]["estado_lampada"] = coisa.estado_lampada
             coisa.save()
             msg = {"novo_estado": 1 if(coisa.estado_lampada) else 0 }
             MQTT.publish(f"{slug}/OnOff", msg)
-        context = __get_base_context(slug)
-        return HttpResponse(template.render(context,request))
+        return redirect('IoT:detail', slug = slug)
     else:
         template = loader.get_template("IoT/offline.html")
         context={"slug":slug}
         return HttpResponse(template.render(context,request))
 
+
+def preço_kw(request, slug):
+    if(MQTT.confirma_coisa(slug)):
+        template = loader.get_template("IoT/coisa_detail.html")
+        coisa = Coisa.objects.get(slug = slug)
+        if(request.method == "POST"):
+            coisa.preço = (float(request.POST.get("preço").replace(",",".")))
+            coisa.potencia = (float(request.POST.get("KW").replace(",",".")))
+            coisa.save()
+        return redirect('IoT:detail', slug = slug)
+    else:
+        template = loader.get_template("IoT/offline.html")
+        context={"slug":slug}
+        return HttpResponse(template.render(context,request))
 #
 def __get_base_context(slug):
+    context = {}
     for a in range(10000000):
+        a = a/10
         pass
-    coisa = Coisa.objects.get(slug=slug)
-    temporizadores = Temporizadores.objects.filter(coisa=coisa)
-    context={               
-        "coisa":coisa,
-        "temporizadores":temporizadores
-    }
-    context["historico"] = Historico.objects.filter(coisa=context["coisa"])[::-1][:30]
     try:
         for a in range(1000000):
             if(MQTT.coisas[slug]["timer"] != None and MQTT.coisas[slug]["estado_timer"] !=None ):
@@ -178,4 +182,10 @@ def __get_base_context(slug):
     except:
 #        print("Sem timer")
         pass
+    coisa = Coisa.objects.get(slug=slug)
+    coisa.estado_lampada = MQTT.coisas[slug]["estado_lampada"]
+    temporizadores = Temporizadores.objects.filter(coisa=coisa)
+    context["coisa"] = coisa
+    context["temporizadores"] = temporizadores
+    context["historico"] = Historico.objects.filter(coisa=context["coisa"])[::-1][:30]
     return context

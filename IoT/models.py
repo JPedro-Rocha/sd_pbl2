@@ -9,12 +9,13 @@ from django.urls import reverse
 # Create your models here.
 class Coisa(models.Model):
     slug = models.CharField(max_length=100)
+    preço = models.FloatField()
     estado_lampada = models.BooleanField( default = False )
     potencia = models.FloatField()
     def __str__(self):
         return self.slug
-    def get_absolute_url(self):
-        return reverse("IoT:detail",kwargs={"slug":self.slug})
+    def getbsolute_url(self):
+        return f"http://127.0.0.1:8000/IoT/{self.slug}"
     def get_potencia(self):
         return self.potencia
 
@@ -27,16 +28,14 @@ class Temporizadores( models.Model ):
         return str(self.horario)
     def get_horario(self):
         return self.horario
-        
 
 class Historico( models.Model ):
     date = models.CharField( max_length=11 )
     tempo_ligado = models.PositiveBigIntegerField() #max value 9223372036854775807
-    preço = models.FloatField()
     coisa = models.ForeignKey(Coisa, on_delete=models.CASCADE)
     def get_KWh(self):
-        return round(((self.tempo_ligado/1000)/3600) * self.coisa.get_potencia(),3 )
+        return round(((self.tempo_ligado)/3600000) * self.coisa.get_potencia(),3 )
     def __str__(self):
         return self.date
     def total(self):
-        return round(self.get_KWh() * self.preço,3)
+        return round(self.get_KWh() * self.coisa.preço,3)

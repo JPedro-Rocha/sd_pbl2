@@ -14,4 +14,5 @@ urlpatterns = [
     url(r'^(?P<slug>[a-zA-Z0-9]+)/atualizar_temporizador/(?P<pos>[0-9])/$', views.atualizar_temporizador, name="modifica_temporizador"),
     url(r'^(?P<slug>[a-zA-Z0-9]+)/timer/$', views.set_timer, name="timer"),
     url(r'^(?P<slug>[a-zA-Z1-9]+)/lampada/$', views.altera_lamp, name="altera_lamp"),
+    url(r'^(?P<slug>[a-zA-Z1-9]+)/historico/$', views.preço_kw, name="altera_preço_kw"),
 ]
