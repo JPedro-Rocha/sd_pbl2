@@ -117,11 +117,10 @@ def set_timer(request,slug):
                 msg["is_ligado"] = 1 if(request.POST.get("timer_on") == "on") else 0
             else:
                 msg["is_ligado"]=1
-            if( msg["is_ligado"] == 1):
-                s = request.POST.get("tempo")
-                s = s.split(":")
-                s = timedelta( seconds=int(s[2]), minutes=int(s[1]),hours=int(s[0]))
-                s = now + s
+            s = request.POST.get("tempo")
+            s = s.split(":")
+            s = timedelta( seconds=int(s[2]), minutes=int(s[1]),hours=int(s[0]))
+            s = now + s
             now_string = s.strftime("%H:%M:%S")
             msg["set_timer"] = now_string
             print(msg)

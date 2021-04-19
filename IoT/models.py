@@ -2,6 +2,7 @@ from django.db import models
 
 #from django.contrib.auth.models import User
 from django.urls import reverse
+from django.shortcuts import redirect
 
 
 #documentação : https://docs.djangoproject.com/en/3.2/ref/models/fields/#positivebigintegerfield
@@ -15,7 +16,7 @@ class Coisa(models.Model):
     def __str__(self):
         return self.slug
     def getbsolute_url(self):
-        return f"http://127.0.0.1:8000/IoT/{self.slug}"
+        return redirect('IoT:detail', slug = self.slug)
     def get_potencia(self):
         return self.potencia
 
