@@ -7,9 +7,9 @@ from datetime import date
 client = AWSIoTPyMQTT.AWSIoTMQTTClient("meu_client")
 
 client.configureEndpoint("at9zi9dd4t3sg-ats.iot.us-east-1.amazonaws.com", 8883)
-client.configureCredentials("C:\\Users\\dfc15\\Downloads\\AmazonRootCA1.pem", 
-                            "C:\\Users\\dfc15\\Downloads\\a504e91ba6-private.pem.key",
-                            "C:\\Users\\dfc15\\Downloads\\a504e91ba6-certificate.pem.crt")
+client.configureCredentials("certificates\\AmazonRootCA1.pem", 
+                            "certificates\\a504e91ba6-private.pem.key",
+                            "certificates\\a504e91ba6-certificate.pem.crt")
 
 client.connect()
 #print("Client Connected")
