@@ -2,7 +2,6 @@ import AWSIoTPythonSDK.MQTTLib as AWSIoTPyMQTT
 from .models import *
 import json
 from datetime import date
-from time import sleep
 
 
 client = AWSIoTPyMQTT.AWSIoTMQTTClient("meu_client")

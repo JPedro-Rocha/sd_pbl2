@@ -125,8 +125,25 @@ def set_timer(request,slug):
             msg["set_timer"] = now_string
             print(msg)
             MQTT.publish(f"{slug}/set_timer", msg)
-            MQTT.coisas[slug]["estado_timer"] = (["is_ligado"]==1)
+            MQTT.coisas[slug]["estado_timer"] = (msg["is_ligado"]==1)
             MQTT.coisas[slug]["timer"] = msg["set_timer"] if(MQTT.coisas[slug]["estado_timer"]) else "00:00:00"
+        return redirect('IoT:detail', slug = slug)
+    else:
+        template = loader.get_template("IoT/offline.html")
+        context={"slug":slug}
+        return HttpResponse(template.render(context,request))
+
+def del_timer(request,slug):
+    if(MQTT.confirma_coisa(slug)):
+        template = loader.get_template("IoT/coisa_detail.html")
+        if(request.method == "POST"):
+            print(request.POST)
+            msg = {"is_ligado":0,
+                   "set_timer":"00:00:00"}
+            print(msg)
+            MQTT.publish(f"{slug}/set_timer", msg)
+            MQTT.coisas[slug]["estado_timer"] = (["is_ligado"]==1)
+            MQTT.coisas[slug]["timer"] = msg["set_timer"]
         return redirect('IoT:detail', slug = slug)
     else:
         template = loader.get_template("IoT/offline.html")
@@ -137,7 +154,6 @@ def set_timer(request,slug):
 @csrf_exempt
 def altera_lamp(request, slug):
     if(MQTT.confirma_coisa(slug)):
-        template = loader.get_template("IoT/coisa_detail.html")
         coisa = Coisa.objects.get(slug=slug)
         if(request.method == "POST"):
             coisa.estado_lampada = (request.POST.get("lampada") == "true")
