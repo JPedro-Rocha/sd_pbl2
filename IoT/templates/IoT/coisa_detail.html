@@ -53,7 +53,7 @@
             </a>
         {% else %}  
         <form action="/IoT/{{coisa.slug}}/timer/set/" method="POST">{% csrf_token %}
-            <input name="tempo" class="my-2 mr-3 p-1 horario" type="text" value="00:00:00" maxlength="8" style="width: 85px;">
+            <input name="tempo" class="my-2 mr-3 p-1 horario" type="text" value="00:00:00" onKeyPress="return(fMasc(this,mHora))" maxlength="8" style="width: 85px;">
             <a>
                 <button class="btn mr-3">Iniciar</button>
             </a>
@@ -68,7 +68,7 @@
             <div style="display: flex; width: 270px; margin: 0 auto;" >
                 <br >
                 <!--onKeyPress="return(fMasc(this,mHora))"-->
-                <input name="horario" class="mr-3 horario" type="text" value="{{ temporizador.get_horario }}"  maxlength="8" style="width: 75px; height: 40px;">
+                <input name="horario" class="mr-3 horario" type="text" value="{{ temporizador.get_horario }}" onKeyPress="return(fMasc(this,mHora))" maxlength="8" style="width: 75px; height: 40px;">
                 <label class="switch mr-3">
                     <input name="estado" type="checkbox" {% if temporizador.estado %} checked {% endif %}>
                     <span class="slider round"x ></span>
@@ -91,9 +91,9 @@
     <div style="display: flex; width: 185px; margin: 0 auto;" >
         <form action="/IoT/{{coisa.slug}}/historico/" method="POST">{% csrf_token %}
             <p>KW lampada:</p>
-            <input name="KW" value="{{coisa.potencia}}" type="text">
+            <input name="KW" value="{{coisa.potencia}}" type="text" onKeyPress="return(fMasc(this,mConsumo))" maxlength="4">
             <p>Preço KW/h:</p>
-            <input name="preço" value="{{coisa.preço}}" type="text">
+            <input name="preço" value="{{coisa.preço}}" type="text" onKeyPress="return(mValor(this,'.',',',event))">
             <input class="btn my-2" type="submit" value="Salvar">
         </form>
         </div>
@@ -136,3 +136,63 @@
         </table>
     </div>
 {% endblock %}
+<script>
+    function fMasc(objeto, mascara) {
+        obj = objeto;
+        masc = mascara;
+        setTimeout("fMascEx()", 1);
+    }
+
+    function fMascEx() {
+        obj.value = masc(obj.value);
+    }
+
+    function mConsumo(consumo) {
+        consumo = hora.replace(/\D/g, "");
+    }
+
+    function mHora(hora) {
+        hora = hora.replace(/\D/g, "");
+        hora = hora.replace(/(\d{2})(\d)/, "$1:$2");
+        hora = hora.replace(/(\d{2})(\d{2})/, "$1:$2");
+        hora = hora.replace(/(\d{2})(\d{2})(\d{2})$/, "$1:$2:$3");
+        return hora;
+    }
+
+    function mValor(a, e, r, t) {
+        let n = "",
+            h = j = 0,
+            u = tamanho2 = 0,
+            l = ajd2 = "",
+            o = window.Event ? t.which : t.keyCode;
+        if (13 == o || 8 == o)
+            return !0;
+        if (n = String.fromCharCode(o), -1 == "0123456789".indexOf(n))
+            return !1;
+        for (u = a.value.length,
+            h = 0; h < u && ("0" == a.value.charAt(h) || a.value.charAt(h) == r); h++)
+        ;
+        for (l = ""; h < u; h++)
+            -
+            1 != "0123456789".indexOf(a.value.charAt(h)) && (l += a.value.charAt(h));
+        if (l += n,
+            0 == (u = l.length) && (a.value = ""),
+            1 == u && (a.value = "0" + r + "0" + l),
+            2 == u && (a.value = "0" + r + l),
+            u > 2) {
+            for (ajd2 = "",
+                j = 0,
+                h = u - 3; h >= 0; h--)
+                3 == j && (ajd2 += e,
+                    j = 0),
+                ajd2 += l.charAt(h),
+                j++;
+            for (a.value = "",
+                tamanho2 = ajd2.length,
+                h = tamanho2 - 1; h >= 0; h--)
+                a.value += ajd2.charAt(h);
+            a.value += r + l.substr(u - 2, u)
+        }
+        return !1
+    }
+</script>
