@@ -94,6 +94,8 @@ def atualizar_temporizador(request,slug,pos):
             t.estado = request.POST.get("estado") == "on"
 
             now = datetime.now()
+            br = timedelta( hours= -3 )
+            now+=br
             dt_string = now.strftime("%H:%M:%S")
             msg = { "tempo":t.horario,
                         "estado": 1 if(t.estado) else 0,
@@ -114,6 +116,8 @@ def set_timer(request,slug):
             print(request.POST)
             msg = {}
             now = datetime.now()
+            br = timedelta( hours= -3 ) #para trazer o horario pro brasil
+            now += br
             if(request.POST.get("timer_on") != None):
                 msg["is_ligado"] = 1 if(request.POST.get("timer_on") == "on") else 0
             else:
