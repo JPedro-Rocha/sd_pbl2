@@ -7,7 +7,7 @@
     {% for coisa,is_on in coisa_list %}
     <!--background:red;-->
     <coisa style=" display: flex; margin-bottom: 2px; width: 350px; margin-left: auto; margin-right: auto;" >
-        <h2> <a href="http://127.0.0.1:8000/IoT/{{ coisa.slug }}"> {{ coisa.slug }} </a> </h2>
+        <h2> <a href="/IoT/{{ coisa.slug }}"> {{ coisa.slug }} </a> </h2>
         {% if is_on == True %}
         <label class="switch my-3">
             <input type="checkbox" id="estado_lampada" {%if coisa.estado_lampada %} checked {% endif %}>
@@ -15,10 +15,10 @@
             <!--ajax function to get the state of the light-->
             <script>
                 function ligarDesligar(event) {
-        
+
                     let lampada = document.getElementById('estado_lampada').checked
                     console.log(lampada)
-                
+
                     $.ajax({
                         type: "POST",
                         url: "/IoT/{{coisa.slug}}/lampada/",
@@ -33,7 +33,7 @@
                         }
                     })
                 }
-                
+
                 $(document).ready(function() {
                     $("#estado_lampada").click(ligarDesligar);
                 });
@@ -44,7 +44,7 @@
             Indisponível
         </h3>
         {% endif %}
-    </coisa>    
+    </coisa>
     {% endfor %}
 </div>
 {% endblock %}

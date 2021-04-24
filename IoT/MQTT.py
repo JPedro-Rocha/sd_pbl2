@@ -22,22 +22,21 @@ def subscribe(topic, qos, callback):
 
 def __historico__(client, userdata ,mensage ):
     slug = mensage.topic.split("/")[0]
-    print(f"editando historico {slug} :", mensage.payload.decode("utf-8"))
+#    print(f"editando historico {slug} :", mensage.payload.decode("utf-8"))
     coisa = Coisa.objects.get(slug=slug)
     hist = Historico.objects.filter(coisa=coisa)
     msg = json.loads(mensage.payload.decode("utf-8").replace("ld",""))
     today = date.today()
     d1 = today.strftime("%d/%m/%Y")
-    if( len(hist) > 1 ):
-        hist = hist.filter(date=d1)
+    hist = hist.filter(date=d1)
     if(len(hist)>0):
         hist = hist[0]
         hist.tempo_ligado+=msg["tempo"]
     else:
         hist = Historico(date = d1, tempo_ligado=msg["tempo"],coisa=coisa)
-    print(hist.tempo_ligado)
+#    print(hist.tempo_ligado)
     hist.save()
-    print(f'o historico do dia {hist.date} foi somado em {msg["tempo"]}s ficando com um total de: {hist.tempo_ligado}s')
+#    print(f'o historico do dia {hist.date} foi somado em {msg["tempo"]}s ficando com um total de: {hist.tempo_ligado}s')
     
 def __iniciar__(client, userdata ,mensage ):
     slug = mensage.topic.split("/")[0]

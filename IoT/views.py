@@ -9,8 +9,10 @@ from datetime import datetime,timedelta
 from IoT import MQTT
 from django.shortcuts import redirect
 
-class CoisaListView(ListView):
-    model=Coisa
+#class CoisaListView(ListView):
+#    model=Coisa
+
+__base_url__='127.0.0.1'
 
 def listar(request):
     coisas = Coisa.objects.all()
@@ -18,7 +20,7 @@ def listar(request):
     vet = []
     for c in coisas:
         vet.append( MQTT.confirma_coisa(c.slug) )
-    context = {"coisa_list":zip(coisas,vet)}
+    context = {"coisa_list":zip(coisas,vet), "url_base" : __base_url__}
     return HttpResponse(template.render(context,request))
 
 def coisa(request, slug):
@@ -108,7 +110,6 @@ def atualizar_temporizador(request,slug,pos):
 
 def set_timer(request,slug):
     if(MQTT.confirma_coisa(slug)):
-        template = loader.get_template("IoT/coisa_detail.html")
         if(request.method == "POST"):
             print(request.POST)
             msg = {}
@@ -183,7 +184,7 @@ def preço_kw(request, slug):
         return HttpResponse(template.render(context,request))
 #
 def __get_base_context(slug):
-    context = {}
+    context = { "url_base": __base_url__}
     for a in range(10000000):
         a = a/10
         pass
