@@ -34,7 +34,7 @@ PubSubClient MQTT(AWS_endpoint, 8883, callback, espClient);
 */
 
 // Variaveis pra o codigo
-String timer;
+String timer = "00:00:00";
 bool timer_on = false;
 
 int estado_lampada=1;
@@ -73,6 +73,8 @@ void mudar_estado_lampada( int novo_estado ) {
     char msg[75];
     snprintf (msg, 75, "{\"tempo\": %uld}", ligado_at);
     MQTT.publish("Lampada1/Alterar_Historico", msg);
+    Serial.print("historico alterado: ");
+    Serial.println(msg);
     ligado_at = 0;
     estado_lampada = novo_estado;
   } else {
@@ -100,23 +102,27 @@ void publish_lampada() {
 void set_timer(String tempo, bool is_ligado) {
   Serial.print("Criando timer para inverter o estado da lampada em (s):");
   Serial.println(tempo);
-  timer = tempo;
   timer_on = is_ligado == 1 ? true : false;
+  timer = tempo;
 }
 
 /*
   Esta função publica o timer no broker MQTT
 */
 void get_timer() {
-  Serial.println("Publicando timer");
+  Serial.print("Publicando timer");
   char msg[160];
-  char buff[25];
-  timer.toCharArray(buff,25);
-  if(timer_on){
-    snprintf (msg, 160, "{\"timer\": %s, \"timer_on\":True}", buff);
-  }else{
-    snprintf (msg, 160, "{\"timer\": %s, \"timer_on\":False}", buff);
+  char buff[30];
+  for(int a =0; a<timer.length();a++){
+    buff[a]=timer[a];
     }
+  buff[timer.length()] = 0;
+  if(timer_on){
+    snprintf (msg, 160, "{\"timer\": \"%s\", \"timer_on\":1}", buff);
+  }else{
+    snprintf (msg, 160, "{\"timer\": \"%s\", \"timer_on\":0}", buff);
+    }
+  Serial.println(msg);
   MQTT.publish("Lampada1/get_timer", msg);
 }
 
@@ -150,7 +156,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
     mudar_estado_lampada(doc["novo_estado"]);
   } else if ( strcmp(topic, "Lampada1/get_tempo") == 0 ) {
     publish_lampada();
-    get_timer();
+    get_timer();  
   } else if ( strcmp(topic, "Lampada1/set_timer") == 0 ) {
     set_timer(doc["set_timer"], doc["is_ligado"]);
   } else if ( strcmp(topic, "Lampada1/temporizador") == 0 ) {
@@ -202,7 +208,7 @@ void conectar_mqtt() {
   }
 }
 
-void setup() { // PRECISA ADICIONA MENSAGEM DE CONFIGURAÇÃO AO LIGAR --------------------------------------------------------------------------
+void setup() {
   Serial.begin(9600); // inicia "console"
   Serial.setDebugOutput(true);
   // Pino do led como saida.
@@ -233,7 +239,9 @@ void setup() { // PRECISA ADICIONA MENSAGEM DE CONFIGURAÇÃO AO LIGAR ---------
 
   conectar_mqtt();
 //  Serial.println(tempo_obj.getFormattedTime());
-  MQTT.publish("Lampada1/Iniciar","");
+  mudar_estado_lampada(1);
+  ligado_at = tempo_obj.getEpochTime();
+  MQTT.publish("Lampada1/Iniciar","{}");
 }
 
 bool was_button_pushed = false, was_already_sent = false;
@@ -247,18 +255,21 @@ void loop() {
   MQTT.loop();
   //coletamos qual o millis de agora
   String now = tempo_obj.getFormattedTime();
-  if (timer_on && now >= timer) { // se passamos do horario do timer  e ele nao foi ativado ainda ativamos ele
+  if (timer_on != false && now >= timer) { // se passamos do horario do timer  e ele nao foi ativado ainda ativamos ele
+    Serial.println("timer trigado"); 
     mudar_estado_lampada( (estado_lampada == 0) ? 1 : 0 );
-    timer_on = false;
+   timer_on = false;
   }
   if (now == "00:00:00" ) { // a cada 24h re-armamos os temporizadores
     for ( int a = 0; a < len_temporizadores; a++ )
       temporizadores[a].will_be_trigger = true;
     // Como deve ter o historico diario a cada final de dia se a lampada estiver acessa enviamos o tempo que ela ficou acessa e zeramos a variavel que guarda esse tempo na memoria
-    char msg[75];
-    snprintf (msg, 75, "{\"tempo\": %ld}", tempo_obj.getEpochTime() - ligado_at );
-    ligado_at = tempo_obj.getEpochTime();
-    MQTT.publish("Lampada1/Alterar_Historico", msg);
+    if(estado_lampada==1){
+      char msg[75];
+      snprintf (msg, 75, "{\"tempo\": %ld}", tempo_obj.getEpochTime() - ligado_at );
+      ligado_at = tempo_obj.getEpochTime();
+      MQTT.publish("Lampada1/Alterar_Historico", msg);
+    }
     Serial.println( "Houve virada de dia" );
   }// para cada temporizador o tempo de agora for maior que o de acionalo E não tivermos acionado ainda E ele deve ser usado o trigamos
   for (int a = 0; a < len_temporizadores; a++) {
@@ -280,20 +291,3 @@ void loop() {
   was_already_sent = was_button_pushed;
   was_button_pushed = digitalRead(0) == 0 ? true : false;
 }
-
-/*
-  LIXO
-  
- * Frunção que retorna o topico correto para um dado topico, adicionando o nome da coisa na frente. Ex topico = "oi" e nome da coisa = "lamp" retorna lamp/oi
- * @param topico, char* que sera colocado depois de: {nome_da_coisa}/
- * @return char* sendo o topico escrito corretamente, {nome_da_coisa}/{topico}
-char* get_topic(String topico){
-  String topic = nome_dispositivo+"/";
-  topic.concat(topico);
-  char buff[75];
-  topic.toCharArray(buff,75);
-  return buff;
-  }
-
-
-*/
