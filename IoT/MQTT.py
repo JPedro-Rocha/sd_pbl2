@@ -89,7 +89,11 @@ def __estado__(client, userdata ,mensage ):
 
 
 def confirma_coisa(slug):
-    coisas[slug]["estado_lampada"] =None
+    try:
+        coisas[slug]["estado_lampada"] =None
+    except:
+      adiciona_coisa(slug)
+      coisas[slug]["estado_lampada"] =None
     publish(f'{coisa.slug}/get_tempo',"")
     for a in range(7000000):
         try:
@@ -100,6 +104,15 @@ def confirma_coisa(slug):
             pass
 #    print("returning false")
     return False
+
+def adiciona_coisa(slug):
+    subscribe(f'{coisa.slug}/Estado',0, __estado__)
+    subscribe(f'{coisa.slug}/Iniciar',0, __iniciar__)
+    subscribe(f'{coisa.slug}/get_timer',0, __get_timer__)
+    subscribe(f'{coisa.slug}/Alterar_Historico',0,__historico__)
+    coisas[coisa.slug] = {"estado_lampada":None,
+                        "timer":None,
+                        "estado_timer":None}
 
 #Inicia as coisas que estao salvas na db
 for coisa in  Coisa.objects.all():
