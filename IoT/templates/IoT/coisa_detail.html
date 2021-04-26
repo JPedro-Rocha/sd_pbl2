@@ -2,119 +2,121 @@
 
 {% block title %} Editando {{ coisa.slug }}{% endblock %}
 
-{% block body %} 
-<!--style="background-color: red;"-->   
-    <div   class="container text-center mt-80">
-        <h2 style="margin-bottom:2px">{{coisa.slug}}</h2>
-        <label class="switch my-3">
-            <input type="checkbox" id="estado_lampada" {%if coisa.estado_lampada %} checked {% endif %}>
-            <span class="slider round"></span>
-            <!--ajax function to get the state of the light-->
-            <script>
-                function ligarDesligar(event) {
-        
-                    let lampada = document.getElementById('estado_lampada').checked
-                    console.log(lampada)
-                
-                    $.ajax({
-                        type: "POST",
-                        url: "/IoT/{{coisa.slug}}/lampada/",
-                        data: {
-                            "lampada": lampada
-                        },
-                        success: function(response) {
-                            console.log(response)
-                        },
-                        error: function(error) {
-                            console.log(error)
-                        }
-                    })
-                }
-                
-                $(document).ready(function() {
-                    $("#estado_lampada").click(ligarDesligar);
-                });
-            </script>
-            <!--ajax function to get the state of the light-->
-        </label>    
-    </div>
-    <!--style="background-color: blue;"-->
-    
-    <div id="boxDesligamento" class="container text-center" >
-        <h1>Ligar/Desligar daqui a:</h1>
-        <br>  
-        {% if estado_timer %}
-        <form action="/IoT/{{coisa.slug}}/timer/del/" method="POST">{% csrf_token %}
-            <p>
-                {% if timer %}{{ timer }}{% endif %}
-            </p>
-            <a>
-                <button class="btn mr-3">Desligar</button>
-            </a>
-        {% else %}  
+{% block body %}
+<!--style="background-color: red;"-->
+<div class="container text-center mt-80">
+    <h2 style="margin-bottom:2px">{{coisa.slug}}</h2>
+    <label class="switch my-3">
+        <input type="checkbox" id="estado_lampada" {%if coisa.estado_lampada %} checked {% endif %}>
+        <span class="slider round"></span>
+        <!--ajax function to get the state of the light-->
+        <script>
+            function ligarDesligar(event) {
+
+                let lampada = document.getElementById('estado_lampada').checked
+                console.log(lampada)
+
+                $.ajax({
+                    type: "POST",
+                    url: "/IoT/{{coisa.slug}}/lampada/",
+                    data: {
+                        "lampada": lampada
+                    },
+                    success: function (response) {
+                        console.log(response)
+                    },
+                    error: function (error) {
+                        console.log(error)
+                    }
+                })
+            }
+
+            $(document).ready(function () {
+                $("#estado_lampada").click(ligarDesligar);
+            });
+        </script>
+        <!--ajax function to get the state of the light-->
+    </label>
+</div>
+<!--style="background-color: blue;"-->
+
+<div id="boxDesligamento" class="container text-center">
+    <h1>Ligar/Desligar daqui a:</h1>
+    <br>
+    {% if estado_timer %}
+    <form action="/IoT/{{coisa.slug}}/timer/del/" method="POST">{% csrf_token %}
+        <p>
+            {% if timer %}{{ timer }}{% endif %}
+        </p>
+        <a>
+            <button class="btn mr-3">Desligar</button>
+        </a>
+        {% else %}
         <form action="/IoT/{{coisa.slug}}/timer/set/" method="POST">{% csrf_token %}
-            <input name="tempo" class="my-2 mr-3 p-1 horario" type="text" value="00:00:00" onKeyPress="return(fMasc(this,mHora))" maxlength="8" style="width: 85px;">
+            <input name="tempo" class="my-2 mr-3 p-1 horario" type="text" value="00:00:00"
+                onKeyPress="return(fMasc(this,mHora))" maxlength="8" style="width: 85px;">
             <a>
                 <button class="btn mr-3">Iniciar</button>
             </a>
-        {% endif %}
+            {% endif %}
         </form>
-    </div>
-    <div id="boxTemporizador" class="container text-center" >
-        <h1>Temporizador</h1>
-        {% for temporizador in temporizadores %}
-        {% if temporizador.coisa == coisa %}
-        <form action="/IoT/{{coisa.slug}}/atualizar_temporizador/{{temporizador.pos}}/" method="POST">{% csrf_token %}
-            <div style="display: flex; width: 270px; margin: 0 auto;" >
-                <br >
-                <!--onKeyPress="return(fMasc(this,mHora))"-->
-                <input name="horario" class="mr-3 horario" type="text" value="{{ temporizador.get_horario }}" onKeyPress="return(fMasc(this,mHora))" maxlength="8" style="width: 75px; height: 40px;">
-                <label class="switch mr-3">
-                    <input name="estado" type="checkbox" {% if temporizador.estado %} checked {% endif %}>
-                    <span class="slider round"x ></span>
-                </label>
-                <a href="/IoT/{{coisa.slug}}/remove/{{temporizador.pos}}/" >
-                    <i class="fa fa-remove" style="font-size:24px;color:red"></i>
-                </a>
-                <input class="btn my-2" type="submit" value="Salvar">
-            </div> 
-        </form>
-        {% endif %}
-        {% endfor %}
-        <a href="/IoT/{{coisa.slug}}/add/">
-            <button class="btn my-2">Adicionar</button>
-        </a>
-    </div>
-    <div style="display: flex; width: 185px; margin: 0 auto;" >
-        <h1>Historico</h1>
-    </div>
-    <div style="display: flex; width: 185px; margin: 0 auto;" >
-        <form action="/IoT/{{coisa.slug}}/historico/" method="POST">{% csrf_token %}
-            <p>KW lampada:</p>
-            <input name="KW" value="{{coisa.potencia}}" type="text" onKeyPress="return(fMasc(this,mConsumo))" maxlength="4">
-            <p>Preço KW/h:</p>
-            <input name="preço" value="{{coisa.preço}}" type="text" onKeyPress="return(mValor(this,'.',',',event))">
+</div>
+<div id="boxTemporizador" class="container text-center">
+    <h1>Temporizador</h1>
+    {% for temporizador in temporizadores %}
+    {% if temporizador.coisa == coisa %}
+    <form action="/IoT/{{coisa.slug}}/atualizar_temporizador/{{temporizador.pos}}/" method="POST">{% csrf_token %}
+        <div style="display: flex; width: 270px; margin: 0 auto;">
+            <br>
+            <!--onKeyPress="return(fMasc(this,mHora))"-->
+            <input name="horario" class="mr-3 horario" type="text" value="{{ temporizador.get_horario }}"
+                onKeyPress="return(fMasc(this,mHora))" maxlength="8" style="width: 75px; height: 40px;">
+            <label class="switch mr-3">
+                <input name="estado" type="checkbox" {% if temporizador.estado %} checked {% endif %}>
+                <span class="slider round" x></span>
+            </label>
+            <a href="/IoT/{{coisa.slug}}/remove/{{temporizador.pos}}/">
+                <i class="fa fa-remove" style="font-size:24px;color:red"></i>
+            </a>
             <input class="btn my-2" type="submit" value="Salvar">
-        </form>
         </div>
-    <div style="display: flex; width: 300px; margin: 0 auto;" >
-        <table>
-            <thead>
-                <tr>
-                    <th>
-                        dia/mês/ano
-                    </th>
-                    <th>
-                        <div style="padding:10px">  
-                            KW/H
-                        </div>
-                    </th>
-                    <th>
-                        Total
-                    </th>
-                </tr>    
-            </thead>
-            <tbody>
+    </form>
+    {% endif %}
+    {% endfor %}
+    <a href="/IoT/{{coisa.slug}}/add/">
+        <button class="btn my-2">Adicionar</button>
+    </a>
+</div>
+<div style="display: flex; width: 185px; margin: 0 auto;">
+    <h1>Historico</h1>
+</div>
+<div style="display: flex; width: 185px; margin: 0 auto;">
+    <form action="/IoT/{{coisa.slug}}/historico/" method="POST">{% csrf_token %}
+        <p>KW lampada:</p>
+        <input name="KW" value="{{coisa.potencia}}" type="text" onKeyPress="return(mValor(this,'.',',',event))" maxlength="4">
+        <p>Preço KW/h:</p>
+        <input name="preço" value="{{coisa.preço}}" type="text" onKeyPress="return(mValor(this,'.',',',event))">
+        <input class="btn my-2" type="submit" value="Salvar">
+    </form>
+</div>
+<div style="display: flex; width: 300px; margin: 0 auto;">
+    <table>
+        <thead>
+            <tr>
+                <th>
+                    dia/mês/ano
+                </th>
+                <th>
+                    <div style="padding:10px">
+                        KW/H
+                    </div>
+                </th>
+                <th>
+                    Total
+                </th>
+            </tr>
+        </thead>
+        <tbody>
             {% for dia in historico %}
             {% if dia.coisa == coisa %}
             <tr>
@@ -122,7 +124,7 @@
                     {{dia.date}}
                 </th>
                 <td>
-                    <div style="padding:10px">  
+                    <div style="padding:10px">
                         {{dia.get_KWh}}
                     </div>
                 </td>
@@ -133,9 +135,8 @@
             {% endif %}
             {% endfor %}
         </tbody>
-        </table>
-    </div>
-{% endblock %}
+    </table>
+</div>
 <script>
     function fMasc(objeto, mascara) {
         obj = objeto;
@@ -145,10 +146,6 @@
 
     function fMascEx() {
         obj.value = masc(obj.value);
-    }
-
-    function mConsumo(consumo) {
-        consumo = hora.replace(/\D/g, "");
     }
 
     function mHora(hora) {
@@ -171,10 +168,10 @@
             return !1;
         for (u = a.value.length,
             h = 0; h < u && ("0" == a.value.charAt(h) || a.value.charAt(h) == r); h++)
-        ;
+            ;
         for (l = ""; h < u; h++)
             -
-            1 != "0123456789".indexOf(a.value.charAt(h)) && (l += a.value.charAt(h));
+                1 != "0123456789".indexOf(a.value.charAt(h)) && (l += a.value.charAt(h));
         if (l += n,
             0 == (u = l.length) && (a.value = ""),
             1 == u && (a.value = "0" + r + "0" + l),
@@ -185,8 +182,8 @@
                 h = u - 3; h >= 0; h--)
                 3 == j && (ajd2 += e,
                     j = 0),
-                ajd2 += l.charAt(h),
-                j++;
+                    ajd2 += l.charAt(h),
+                    j++;
             for (a.value = "",
                 tamanho2 = ajd2.length,
                 h = tamanho2 - 1; h >= 0; h--)
@@ -196,3 +193,4 @@
         return !1
     }
 </script>
+{% endblock %}
