@@ -110,7 +110,7 @@ Ao realizarmos isso estaremos upando os aquivos da pasta data para a placa e ent
 
 caso nao saiba seu endpoint no aws basta ir em , na tela do IoT core e em configurações e la voce encontrara o endpoint.
 
-IMG
+![Alt Text](img/endpoint aws.png)
 
 Tambem sera nescessario baixa 3 bibliotecas do arduino, para isso na IDE do arduino vamos em sketch, incluir biblioteca e gerenciar bibliotecas...:
 
