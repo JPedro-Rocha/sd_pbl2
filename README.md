@@ -5,14 +5,14 @@
 
 primeiramente precisamos registra a nossa coisa no AWS e pega os certificados para podermos conectala no MQTT do aws. Para isso vamos logar na nossa conta. Entao procuramos por "IoT core"como na imagem a baixo:
 
-![Alt Text](img/entrando no IoT.png)
+![Alt Text](img/entrando_no_IoT.png)
 
 #criando politica
 
 vamos em proteger, em politicas e em criar:
 
 
-![Alt Text](img/criar politica.png)
+![Alt Text](img/criar_politica.png)
 
 colocamos um nome em nossa politica ( para o exemplo demos o nome de politicaNodeMcu ) e colocamos * em ação, marcamos permitir na checkbox e clicamos em criar:
 
@@ -22,27 +22,27 @@ colocamos um nome em nossa politica ( para o exemplo demos o nome de politicaNod
 
 Entao no menu lateral vamos em gerenciar, depois em coisas e por fim criar:
 
-![Alt Text](img/criando coisa.png)
+![Alt Text](img/criando_coisa.png)
 
 Para registrar a coisa clicamos em criar uma única coisa:
 
-![Alt Text](img/criar uma unica coisa.png)
+![Alt Text](img/criar_uma_unica_coisa.png)
 
 Entao escolhemos um nome para a coisa ( no exemplo foi escolhido node_mcu) e cliclamos em proximo:
 
-![Alt Text](img/nome coisa.png)
+![Alt Text](img/nome_coisa.png)
 
 clicamos entao em criar certificados:
 
-![Alt Text](img/criar certificados.png)
+![Alt Text](img/criar_certificados.png)
 
 Entao fazemos o download de todos os certificados e o do nosso CA da amazon ( esses arquivos sao importantes e nao devem ser compartilhadas ou perdidos ), ao clicarmo me fazer download do CA da amazon vamor ser levados a outra pagina:
 
-![Alt Text](img/download certificados.png)
+![Alt Text](img/download_certificados.png)
 
 nessa nova pagina vamos salvar o conteudo do amazon root CA 1 como arquivo de texto junto dos certificados. para tal clicamos com o direito em salvar conteudo do link como:
 
-![Alt Text](img/salvar CA.png)
+![Alt Text](img/salvar_CA.png)
 
 
 entao cliclamos em ativar e axenar uma politica:
@@ -51,7 +51,7 @@ entao cliclamos em ativar e axenar uma politica:
 
 Selecionamos a politica que criamos e em registra a cosia:
 
-![Alt Text](img/registra coisa.png)
+![Alt Text](img/registra_coisa.png)
 
 #upando o codigo na placa
 
@@ -106,11 +106,11 @@ Entao com a placa conectada ao computador garantimos que os dados serao enviado 
 
 Ao realizarmos isso estaremos upando os aquivos da pasta data para a placa e entao alteramos no codigo do arduino as variaveis: id_rede, senha_rede e AWS_endpoint.
 
-![Alt Text](img/codigo arduino.png)
+![Alt Text](img/codigo_arduino.png)
 
 caso nao saiba seu endpoint no aws basta ir em , na tela do IoT core e em configurações e la voce encontrara o endpoint.
 
-![Alt Text](img/endpoint aws.png)
+![Alt Text](img/endpoint_aws.png)
 
 Tambem sera nescessario baixa 3 bibliotecas do arduino, para isso na IDE do arduino vamos em sketch, incluir biblioteca e gerenciar bibliotecas...:
 
@@ -124,7 +124,7 @@ Entao sera aberno uma janela e nela vamos digita o nome da biblioteca e clicar e
 
 aqui temos um exemplo da instalação da biblioteca ArduinoJson:
 
-![Alt Text](img/instalando ArduinoJson.png)
+![Alt Text](img/instalando_ArduinoJson.png)
 
 Agora podemos upar o sketch para a placa pelo botao que contem uma seta no topo do menu:
 
@@ -136,7 +136,7 @@ Para uparmos o servidor vamos de volta ao AWS e dessa vez abrimos o EC2 ao invez
 
 Entao vamos em instancias, instancias e executar instância:
 
-![Alt Text](img/criar_instancia Ec2.png)
+![Alt Text](img/criar_instancia_Ec2.png)
 
 Vamos em AMIs da comunidade, Ubuntu e selecionamos a primeira ( Ubunu-focal-20.04) : 
 
