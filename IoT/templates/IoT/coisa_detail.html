@@ -86,11 +86,11 @@
         </a>
     </div>
     <div style="display: flex; width: 185px; margin: 0 auto;" >
-        <h1>Historico</h1>
+        <h1>Histórico</h1>
     </div>
     <div style="display: flex; width: 185px; margin: 0 auto;" >
         <form action="/IoT/{{coisa.slug}}/historico/" method="POST">{% csrf_token %}
-            <p>KW lampada:</p>
+            <p>KW lâmpada:</p>
             <input name="KW" value="{{coisa.potencia}}" type="text">
             <p>Preço KW/h:</p>
             <input name="preço" value="{{coisa.preço}}" type="text">
