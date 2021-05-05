@@ -66,16 +66,6 @@
             <button class="btn my-2">Adicionar</button>
         </a>
     </div>
-    <div style="display: flex; width: 185px; margin: 0 auto;" >
-        <h1>Histórico</h1>
-    </div>
-    <div style="display: flex; width: 185px; margin: 0 auto;" >
-        <form action="/IoT/{{coisa.slug}}/historico/" method="POST">{% csrf_token %}
-            <p>KW lâmpada:</p>
-            <input name="KW" value="{{coisa.potencia}}" type="text">
-            <p>Preço KW/h:</p>
-            <input name="preço" value="{{coisa.preço}}" type="text">
-</div>
 <div id="boxTemporizador" class="container text-center">
     <h1>Temporizador</h1>
     {% for temporizador in temporizadores %}
