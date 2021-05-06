@@ -211,7 +211,7 @@ sudo apt upgrade -y
 ```
 
 para realizar todas as atualizações.
-Então faremos :
+Então executaremos o codigo abaixo para clonar o esse github, sendo nescessario upa os certificados do aws na maquina tambem ( isso pode ser feito upando os certificados em algum serviço de cloud storage e baixando pela maquina ):
 
 ```
 git clone {link desse github}
