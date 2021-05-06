@@ -6,7 +6,7 @@
 - Navegador.
 
 ##2. Acesso ao sistema
-- Para acessar o site, digite a seguinte URL em seu navegador: LINK;
+- Para acessar o site, digite a seguinte URL em seu navegador: http://54.197.122.189/ ;
 - Deverá aparecer a seguinte tela.
 ![Alt Text](img/Inicial.png)
 
