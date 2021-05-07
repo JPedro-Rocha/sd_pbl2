@@ -1,12 +1,14 @@
-# Relatorio de sistema
+# Automação residencial
+Este arquivo contém o manual do sistema e após ele o manual do usuário.
+## Manual de sistema
 
-#Entrando no IoT core
+### Entrando no IoT core
 
 Primeiramente precisamos registrar a nossa coisa no AWS e pegar os certificados para podermos conectá-la no MQTT do AWS. Para isso vamos entrar na nossa conta. Então procuramos por "IoT core", como na imagem abaixo:
 
 ![Alt Text](img/entrando_no_IoT.png)
 
-#Criando política
+### Criando política
 
 Vamos em proteger, em políticas e em criar:
 
@@ -16,7 +18,7 @@ Colocamos um nome em nossa política (para o exemplo demos o nome de politicaNod
 
 ![Alt Text](img/nome_politica.png)
 
-# Registando a coisa no AWS
+### Registando a coisa no AWS
 
 Então no menu lateral vamos em gerenciar, depois em coisas e por fim criar:
 
@@ -41,29 +43,6 @@ Então fazemos o download de todos os certificados e do nosso CA da amazon (esse
 Nessa nova página vamos salvar o conteúdo do amazon root CA 1 como arquivo de texto junto aos certificados. Para tal, clicamos com o botão direito do mouse e em "Salvar conteúdo do link como":
 
 ![Alt Text](img/salvar_CA.png)
-=======
-![Alt Text](img/criando_coisa.png)
-
-Para registrar a coisa clicamos em criar uma única coisa:
-
-![Alt Text](img/criar_uma_unica_coisa.png)
-
-Então escolhemos um nome para a coisa ( no exemplo foi escolhido node_mcu) e clicamos em próximo:
-
-![Alt Text](img/nome_coisa.png)
-
-Clicamos então em criar certificados:
-
-![Alt Text](img/criar_certificados.png)
-
-Entao fazemos o download de todos os certificados e o do nosso CA da amazon ( esses arquivos são importantes e não devem ser compartilhadas ou perdidos ), ao clicarmo me fazer download do CA da amazon vamor ser levados a outra pagina:
-
-![Alt Text](img/download_certificados.png)
-
-Nessa nova pagina vamos salvar o conteudo do amazon root CA 1 como arquivo de texto junto dos certificados. para tal clicamos com o direito em salvar conteudo do link como:
-
-![Alt Text](img/salvar_CA.png)
-======
 
 Então clicamos em ativar e axenar uma política:
 
@@ -73,7 +52,7 @@ Selecionamos a política que criamos e clicamos em "Registrar a coisa":
 
 ![Alt Text](img/registra_coisa.png)
 
-#Carregando o código na placa
+### Carregando o código na placa
 
 Entao faremos o download do código disponível no git na nossa máquina:
 
@@ -150,7 +129,7 @@ Agora podemos upar o sketch para a placa pelo botão que contém uma seta no top
 
 ![Alt Text](img/upando_scktch.png)
 
-#Criando máquina virtual
+### Criando a máquina virtual
 
 Para carregarmos o servidor, vamos de volta ao AWS e dessa vez abrimos o EC2 ao invez do IoT Core, para abrirmos o EC2 o passo a passo é similar ao do IoT core porém dessa vez buscamos por EC2 no lugar de IoT core.
 
@@ -190,7 +169,7 @@ Então clicaremos em cliente SSH e copiaremos o exemplo:
 
 ![Alt Text](img/ssh.png)
 
-#Colocando o servidor no ar
+### Colocando o servidor no ar
 
 Então para usuários Linux abriremos a pasta que tem a chave que acabamos de baixar e executaremos o comando que copiamos, e pressionar ENTER. Para Windowns recomenda-se baixar o git bash e executar o git bash na pasta que foi colocada a chave baixada e colar o comando copiado e dar ENTER:
 
@@ -294,3 +273,47 @@ Assim abrimos o servidor na porta :80 da máquina aberta para qualquer um acessa
 Então basta colocar o IPv4 da máquina do seu navegador e estará acessando o site, garanta que está acessando a porta 80 digitando: "HTTP://{IPv4}".
 
 ![Alt Text](img/Site.png)
+
+## Manual do Usuário
+
+### 1. Pré-Requisistos
+- Conexão com a Internet;
+- Sistema Operacional;
+- Navegador.
+
+### 2. Acesso ao sistema
+- Para acessar o site, digite a seguinte URL em seu navegador: http://54.197.122.189/ ;
+- Deverá aparecer a seguinte tela.
+![Alt Text](img/Inicial.png)
+
+### 3. Tela inicial
+- No botão Switch podemos ligar ou desligar a lâmpada de maneira fácil;
+![Alt Text](img/Switch.png)
+- Caso a lâmpada esteja indisponível, será mostrado no lugar do botão Switch.
+![Alt Text](img/Indisponivel.png)
+- Apertando no nome da lâmpada você será redirecionado para a Tela Geral;
+
+### 4. Tela geral
+- Nesta tela temos todas as informações e funcionalidades do sistema.
+![Alt Text](img/Geral.png)
+
+### 5. Ligar/Desligar Lâmpada
+- Apertando no switch, podemos ligar ou desligar a lâmpada.
+![Alt Text](img/Liga.png)
+
+### 6. Tempo para Ligar/Desligar
+- Para ativar esta funcionalidade, basta inserir o tempo desejado, ativar no Switch e apertar o botão INICIAR, logo, sua lâmpada mudará de estado após esse período.
+![Alt Text](img/Contagem.png)
+
+### 7. Temporizador
+- Para ativar esta funcionalidade, basta inserir os horários desejados, ativar no Switch e apertar o botão SALVAR, logo, sua lâmpada ficará ligada durante o período de tempo especificado;
+![Alt Text](img/Temporizador.png)
+- No X, podemos remover o temporizador desejado;
+- Só poderão ser cadastrados 10 temporizadores.
+
+### 8. Histórico Mensal
+- Nesta seção é possível inserir o valor do consumo em KWh;
+- Também é possível inserir o valor da tarifa para calcular os valores de custo;
+- Após isso, clique em SALVAR;
+- Por último, há uma tabela de registro de consumo dos últimos 30 dias.
+![Alt Text](img/Historico.png)
