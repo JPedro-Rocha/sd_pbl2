@@ -16,13 +16,13 @@ struct temporizador {
 */
 
 //setando as informaçoes da rede
-const char* id_rede = "{ID_do_wifi}";
-const char* senha_rede = "{senha_do_wifi}";
+const char* id_rede = "FIBRA-1032";
+const char* senha_rede = "0Z38019489";
 
 WiFiUDP udp;
 NTPClient tempo_obj(udp, "b.ntp.br", -3 * 3600, 60000);
 //endpoint AWS
-const char* AWS_endpoint = "{Seu_endpoint_do_aws}";
+const char* AWS_endpoint = "a1hhzdnhqam0eu-ats.iot.us-east-1.amazonaws.com";
 //setando a função que vai ser chamada quando uma mensagem chegar
 void callback(char* topic, byte* payload, unsigned int length);
 

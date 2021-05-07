@@ -7,10 +7,10 @@ from datetime import date
 client = AWSIoTPyMQTT.AWSIoTMQTTClient("meu_client")
 #C:\\Users\\dfc15\\Desktop\\materias\\SD\\Problema-2\\site_pbl_2\\sd_pbl2\\IoT\\certificates\\
 #/home/ubuntu/sd_pbl2/IoT/
-client.configureEndpoint("at9zi9dd4t3sg-ats.iot.us-east-1.amazonaws.com", 8883)
-client.configureCredentials("/home/ubuntu/sd_pbl2/IoT/certificates/AmazonRootCA1.pem", 
-                            "/home/ubuntu/sd_pbl2/IoT/certificates/a504e91ba6-private.pem.key",
-                            "/home/ubuntu/sd_pbl2/IoT/certificates/a504e91ba6-certificate.pem.crt")
+client.configureEndpoint("a1hhzdnhqam0eu-ats.iot.us-east-1.amazonaws.com", 8883)
+client.configureCredentials("/home/ubuntu/sd_pbl2/IoT/AmazonRootCA1.pem", 
+                            "/home/ubuntu/sd_pbl2/IoT/a504e91ba6-private.pem.key",
+                            "/home/ubuntu/sd_pbl2/IoT/a504e91ba6-certificate.pem.crt")
 
 client.connect()
 #print("Client Connected")
