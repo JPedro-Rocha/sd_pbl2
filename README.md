@@ -282,7 +282,7 @@ Então basta colocar o IPv4 da máquina do seu navegador e estará acessando o s
 - Navegador.
 
 ### 2. Acesso ao sistema
-- Para acessar o site, digite a seguinte URL em seu navegador: http://54.197.122.189/ ;
+- Para acessar o site, digite a seguinte URL em seu navegador: HTTP://{IPv4} (o qual é configurado de acordo com o manual do sistema);
 - Deverá aparecer a seguinte tela.
 ![Alt Text](img/Inicial.png)
 
