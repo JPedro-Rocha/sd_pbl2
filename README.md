@@ -283,30 +283,30 @@ Então basta colocar o IPv4 da máquina do seu navegador e estará acessando o s
 
 ### 2. Acesso ao sistema
 - Para acessar o site, digite a seguinte URL em seu navegador: HTTP://{IPv4} (o qual é configurado de acordo com o manual do sistema);
-- Deverá aparecer a seguinte tela.
+- Deverá aparecer a seguinte tela.<br>
 ![Alt Text](img/Inicial.png)
 
 ### 3. Tela inicial
-- No botão Switch podemos ligar ou desligar a lâmpada de maneira fácil;
+- No botão Switch podemos ligar ou desligar a lâmpada de maneira fácil;<br>
 ![Alt Text](img/Switch.png)
-- Caso a lâmpada esteja indisponível, será mostrado no lugar do botão Switch.
+- Caso a lâmpada esteja indisponível, será mostrado no lugar do botão Switch.<br>
 ![Alt Text](img/Indisponivel.png)
 - Apertando no nome da lâmpada você será redirecionado para a Tela Geral;
 
 ### 4. Tela geral
-- Nesta tela temos todas as informações e funcionalidades do sistema.
+- Nesta tela temos todas as informações e funcionalidades do sistema.<br>
 ![Alt Text](img/Geral.png)
 
 ### 5. Ligar/Desligar Lâmpada
-- Apertando no switch, podemos ligar ou desligar a lâmpada.
+- Apertando no switch, podemos ligar ou desligar a lâmpada.<br>
 ![Alt Text](img/Liga.png)
 
 ### 6. Tempo para Ligar/Desligar
-- Para ativar esta funcionalidade, basta inserir o tempo desejado, ativar no Switch e apertar o botão INICIAR, logo, sua lâmpada mudará de estado após esse período.
+- Para ativar esta funcionalidade, basta inserir o tempo desejado, ativar no Switch e apertar o botão INICIAR, logo, sua lâmpada mudará de estado após esse período.<br>
 ![Alt Text](img/Contagem.png)
 
 ### 7. Temporizador
-- Para ativar esta funcionalidade, basta inserir os horários desejados, ativar no Switch e apertar o botão SALVAR, logo, sua lâmpada ficará ligada durante o período de tempo especificado;
+- Para ativar esta funcionalidade, basta inserir os horários desejados, ativar no Switch e apertar o botão SALVAR, logo, sua lâmpada ficará ligada durante o período de tempo especificado;<br>
 ![Alt Text](img/Temporizador.png)
 - No X, podemos remover o temporizador desejado;
 - Só poderão ser cadastrados 10 temporizadores.
@@ -315,5 +315,5 @@ Então basta colocar o IPv4 da máquina do seu navegador e estará acessando o s
 - Nesta seção é possível inserir o valor do consumo em KWh;
 - Também é possível inserir o valor da tarifa para calcular os valores de custo;
 - Após isso, clique em SALVAR;
-- Por último, há uma tabela de registro de consumo dos últimos 30 dias.
+- Por último, há uma tabela de registro de consumo dos últimos 30 dias.<br>
 ![Alt Text](img/Historico.png)
